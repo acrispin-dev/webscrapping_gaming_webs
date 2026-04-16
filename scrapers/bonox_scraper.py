@@ -157,13 +157,23 @@ class BonoxScraper:
         Bonox usa Next.js SSR con diferentes estructuras según el juego:
         - Free Fire: Principalmente diamantes con bonus
         - Mobile Legends: Pases, Diamantes, Combos, Bono Doble Recompensa
+        - Valorant: Paquetes VP directos
         """
         try:
             soup = BeautifulSoup(html_content, "lxml")
             items = []
             seen_prices = set()  # Para evitar duplicados
             
-            # Buscar todos los botones que contengan precio (en divs con clase "text-custom-bonoxsYellow")
+            # ESTRATEGIA VALORANT: Buscar estructura con VP y S/
+            # Si detectamos VP, asumimos que es Valorant
+            if "VP" in html_content:
+                valorant_items = self._extract_valorant_items(soup)
+                if valorant_items:
+                    print(f"    Detectada estructura Valorant")
+                    return valorant_items
+            
+            # ESTRATEGIA BONOX STANDARD (Free Fire, Mobile Legends)
+            # Buscar todos los botones que contengan precio
             buttons = soup.find_all('button')
             print(f"    Encontrados {len(buttons)} botones")
             
@@ -304,6 +314,71 @@ class BonoxScraper:
             
         except Exception as e:
             print(f"    Error en extracción: {e}")
+            return None
+    
+    def _extract_valorant_items(self, soup: BeautifulSoup) -> Optional[List[Dict]]:
+        """
+        Extrae items específicos de Valorant.
+        
+        Estructura Valorant:
+        <button class="px-2 py-[2px] flex items-center...">
+            <div class="flex flex-col w-full">
+                <span class="text-[12px]">540VP</span>
+                <span class="text-[#73ff9b] text-[9px]">S/ 18.00</span>
+            </div>
+        </button>
+        """
+        try:
+            items = []
+            
+            # Buscar todos los botones
+            buttons = soup.find_all('button')
+            print(f"    Encontrados {len(buttons)} botones para Valorant")
+            
+            for button in buttons:
+                # Buscar todos los spans dentro del botón
+                spans = button.find_all('span')
+                if len(spans) < 2:
+                    continue
+                
+                # Primer span contiene el nombre del VP (540VP, 1035VP, etc)
+                vp_text = spans[0].get_text(strip=True)
+                
+                # Segundo span contiene el precio (S/ 18.00)
+                price_text = spans[1].get_text(strip=True)
+                
+                # Validar formato VP
+                vp_match = re.search(r'(\d+)\s*VP', vp_text)
+                if not vp_match:
+                    continue
+                
+                # Extraer precio
+                price_match = re.search(r'S/\s*([\d,\.]+)', price_text)
+                if not price_match:
+                    continue
+                
+                try:
+                    price_str = price_match.group(1).replace(',', '.')
+                    precio = float(price_str)
+                    vp_value = int(vp_match.group(1))
+                    
+                    # El nombre del item es simplemente "XXXVP"
+                    item_name = f"{vp_value}VP"
+                    
+                    items.append({
+                        "total": 0,
+                        "precio": precio,
+                        "nombre": item_name
+                    })
+                    print(f"    ✅ {item_name} - S/ {precio}")
+                    
+                except ValueError:
+                    continue
+            
+            return items if items else None
+            
+        except Exception as e:
+            print(f"    Error extrayendo Valorant: {e}")
             return None
 
 

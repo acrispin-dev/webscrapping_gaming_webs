@@ -41,6 +41,11 @@ SITES_CONFIG = {
                 "item_ids": [],  # Bonox extrae automáticamente todos los items de la página
                 "game_name": "Mobile Legends",
                 "url": "https://bonoxs.com/pe/mobile-legends-br?from=store"
+            },
+            "valorant": {
+                "item_ids": [],  # Bonox extrae automáticamente todos los items de la página
+                "game_name": "Valorant",
+                "url": "https://bonoxs.com/pe/valorant-pe?from=store"
             }
         }
     }
