@@ -99,11 +99,22 @@ SITES_CONFIG = {
             },
             "roblox": {
                 "game_name": "Roblox",
-                "url": "https://gamescenter.pe/categoria-producto/roblox-robux/"
+                "url": [
+                    "https://gamescenter.pe/categoria-producto/roblox-robux/",
+                    "https://gamescenter.pe/categoria-producto/roblox-robux/page/2/"
+                ]
             },
             "blood_strike": {
                 "game_name": "Blood Strike",
                 "url": "https://gamescenter.pe/categoria-producto/recargas/blood-strike/"
+            },
+            "genshin_impact": {
+                "game_name": "Genshin Impact",
+                "url": "https://gamescenter.pe/categoria-producto/recargas/genshin-impact/"
+            },
+            "wild_rift": {
+                "game_name": "League of Legends: Wild Rift",
+                "url": "https://gamescenter.pe/categoria-producto/recargas/league-of-legends-wild-rift/"
             }
         }
     }

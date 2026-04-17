@@ -19,8 +19,13 @@ from config import REQUEST_TIMEOUT, USER_AGENT
 class GamescenterScraper:
     """Scraper para gamescenter.pe - Extrae dinámicamente todos los items de la página"""
     
-    def __init__(self, url: str = None):
-        self.url = url or "https://gamescenter.pe/categoria-producto/free-fire-diamantes/"
+    def __init__(self, url = None):
+        # Aceptar URL única (string) o múltiples URLs (list)
+        if isinstance(url, list):
+            self.urls = url
+        else:
+            self.urls = [url or "https://gamescenter.pe/categoria-producto/free-fire-diamantes/"]
+        self.url = self.urls[0]  # Para compatibilidad
         self.seller = "Gamescenter"
         self.headers = {"User-Agent": USER_AGENT}
     
@@ -66,7 +71,7 @@ class GamescenterScraper:
         return results
     
     def _scrape_with_playwright(self) -> Optional[List[Dict]]:
-        """Extrae todos los items usando Playwright"""
+        """Extrae todos los items usando Playwright (soporta múltiples URLs)"""
         try:
             result = asyncio.run(self._scrape_async())
             return result
@@ -75,28 +80,44 @@ class GamescenterScraper:
             return None
     
     async def _scrape_async(self) -> Optional[List[Dict]]:
-        """Scraping asincrónico con Playwright"""
+        """Scraping asincrónico con Playwright - Soporta múltiples URLs"""
         async with async_playwright() as p:
             browser = await p.chromium.launch()
             try:
-                page = await browser.new_page()
-                page.set_default_timeout(30000)
+                all_items = []
                 
-                print(f"    ⏳ Cargando página con Playwright...")
-                await page.goto(self.url, wait_until="domcontentloaded")
+                # Procesar cada URL
+                for url_idx, current_url in enumerate(self.urls, 1):
+                    if len(self.urls) > 1:
+                        print(f"    📄 Procesando página {url_idx}/{len(self.urls)}...")
+                    
+                    page = await browser.new_page()
+                    page.set_default_timeout(30000)
+                    
+                    try:
+                        print(f"    ⏳ Cargando página con Playwright...")
+                        await page.goto(current_url, wait_until="domcontentloaded")
+                        
+                        print(f"    ⏳ Esperando renderización...")
+                        # Esperar a que se carguen los productos
+                        await page.wait_for_selector('ul.products', timeout=10000)
+                        
+                        # Obtener el HTML renderizado
+                        html_content = await page.content()
+                        print(f"    ✅ Página renderizada ({len(html_content)} bytes)")
+                        
+                        # Parsear y extraer items
+                        # Actualizar URL de referencia para esta página
+                        self.url = current_url
+                        items = self._extract_items_from_html(html_content)
+                        
+                        if items:
+                            all_items.extend(items)
+                        
+                    finally:
+                        await page.close()
                 
-                print(f"    ⏳ Esperando renderización...")
-                # Esperar a que se carguen los productos
-                await page.wait_for_selector('ul.products', timeout=10000)
-                
-                # Obtener el HTML renderizado
-                html_content = await page.content()
-                print(f"    ✅ Página renderizada ({len(html_content)} bytes)")
-                
-                # Parsear y extraer items
-                items = self._extract_items_from_html(html_content)
-                
-                return items
+                return all_items if all_items else None
                 
             finally:
                 await browser.close()
@@ -224,10 +245,18 @@ class GamescenterScraper:
         - "Free Fire: 520 Diamantes + 52 Bonus – Perú" → "520 Diamantes + 52 Bonus"
         - "ROBLOX: 5000 Robux + 500 Bonus" → "5000 Robux + 500 Bonus"
         - "Blood Strike - Oro Común x500" → "Oro Común x500"
+        - "Genshin Impact - 260 Genesis Crystals" → "260 Genesis Crystals"
+        - "League of Legends: Wild Rift - 300 RP" → "300 RP"
         """
         try:
-            # Remover prefijos de juego: "Free Fire: ", "Free Fire - ", "ROBLOX: ", "ROBLOX - ", "Blood Strike - "
-            nombre = re.sub(r'^(free\s+fire|roblox|blood\s+strike)\s*[:\-–]?\s*', '', nombre, flags=re.IGNORECASE)
+            # Remover prefijos de juego complejos y simples
+            # Maneja: "Free Fire: ", "ROBLOX: ", "Blood Strike - ", "Genshin Impact - ", "League of Legends: Wild Rift - "
+            nombre = re.sub(
+                r'^(free\s+fire|roblox|blood\s+strike|genshin\s+impact|league\s+of\s+legends(?:\s*:\s*)?(?:\s+)?wild\s+rift)\s*[:\-–]?\s*', 
+                '', 
+                nombre, 
+                flags=re.IGNORECASE
+            )
             
             # Remover sufijos de región y plataforma
             nombre = re.sub(r'\s*[–\-]\s*(Perú|Latinoamérica|Robux Gift Card GLOBAL)\s*$', '', nombre)
