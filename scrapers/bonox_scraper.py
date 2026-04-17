@@ -167,7 +167,7 @@ class BonoxScraper:
             
             # ESTRATEGIA MONEDA DIRECTA: Detectar si es Valorant (VP), Wild Rift (Cores), Blood Strike (Oro) o Roblox (Robux)
             # Si detectamos VP, Cores, Oro, o Robux, asumimos que es una estructura simple de moneda
-            if "VP" in html_content or "Cores" in html_content or "Oro" in html_content or "Robux" in html_content:
+            if "VP" in html_content or "Cores" in html_content or "Oro" in html_content or "Robux" in html_content or "Lattices" in html_content:
                 currency_items = self._extract_currency_items(soup)
                 if currency_items:
                     if "VP" in html_content:
@@ -176,8 +176,10 @@ class BonoxScraper:
                         currency_type = "Wild Rift"
                     elif "Oro" in html_content:
                         currency_type = "Blood Strike"
-                    else:
+                    elif "Robux" in html_content:
                         currency_type = "Roblox"
+                    else:
+                        currency_type = "Marverl Rivals"
                     print(f"    Detectada estructura {currency_type}")
                     return currency_items
             

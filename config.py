@@ -61,6 +61,11 @@ SITES_CONFIG = {
                 "item_ids": [],
                 "game_name": "Roblox",
                 "url": "https://bonoxs.com/pe/roblox-la?from=store"
+            },
+            "marvel_rivals": {
+                "item_ids": [],
+                "game_name": "Marvel Rivals",
+                "url": "https://bonoxs.com/pe/marvel-rivals-ww?from=store"
             }
         }
     }
