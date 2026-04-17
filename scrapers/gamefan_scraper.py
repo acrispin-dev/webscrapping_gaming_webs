@@ -92,8 +92,8 @@ class GamefanScraper:
             soup = BeautifulSoup(response.content, "lxml")
             items = []
             
-            # Buscar todos los divs con clase "col-md-3 col-xs-6 nopadding"
-            product_divs = soup.find_all('div', class_=re.compile(r'col-md-3.*col-xs-6.*nopadding'))
+            # Buscar todos los divs con clase "col-md-X col-xs-6 nopadding" (flexible con col-md-3, col-md-4, etc.)
+            product_divs = soup.find_all('div', class_=re.compile(r'col-md-\d+.*col-xs-6.*nopadding'))
             print(f"    Encontrados {len(product_divs)} productos")
             
             for div in product_divs:
@@ -103,11 +103,15 @@ class GamefanScraper:
                     if not h2:
                         continue
                     
-                    # Extraer el nombre del producto (último texto antes de </h2>)
-                    # El h2 tiene múltiples elementos: <small>Garena</small><br>100 diamantes<br>
+                    # Extraer el nombre del producto
+                    # El h2 tiene estructura: <small>SELLER</small><br>PRODUCT_NAME<br>
+                    # Eliminar primero los tags <small> que contienen el vendedor
+                    for small_tag in h2.find_all('small'):
+                        small_tag.decompose()
+                    
                     h2_text = h2.get_text(strip=True)
-                    # Limpiar espacios múltiples
-                    product_name = re.sub(r'\s+', ' ', h2_text).replace('Garena', '').strip()
+                    # Limpiar espacios múltiples y saltos de línea
+                    product_name = re.sub(r'\s+', ' ', h2_text).strip()
                     
                     if not product_name:
                         continue
@@ -146,7 +150,8 @@ class GamefanScraper:
         <h2 class="big">S./ 3.80</h2>
         """
         try:
-            response = requests.get(product_url, headers=self.headers, timeout=REQUEST_TIMEOUT)
+            # Aumentar timeout para evitar problemas de conexión
+            response = requests.get(product_url, headers=self.headers, timeout=20)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, "lxml")
@@ -168,5 +173,8 @@ class GamefanScraper:
             
             return price
             
+        except requests.Timeout:
+            print(f"        ⚠️  Timeout en {product_url}")
+            return None
         except Exception as e:
             return None

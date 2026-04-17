@@ -75,6 +75,10 @@ SITES_CONFIG = {
             "free_fire": {
                 "game_name": "Free Fire",
                 "url": "https://gamefan.la/pe/juegos/freefire"
+            },
+            "league_of_legends": {
+                "game_name": "League of Legends",
+                "url": "https://gamefan.la/pe/recargar/riot%20points"
             }
         }
     }
