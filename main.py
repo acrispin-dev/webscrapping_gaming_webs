@@ -14,6 +14,7 @@ from config import SITES_CONFIG, CSV_COLUMNS, get_output_filename, OUTPUT_DIR
 # Importar scrapers
 from scrapers.pagostore_scraper import PagostoreScraper
 from scrapers.bonox_scraper import BonoxScraper
+from scrapers.gamefan_scraper import GamefanScraper
 
 
 def save_to_csv(data: list, seller: str, game: str) -> None:
@@ -87,6 +88,30 @@ def scrape_bonox() -> None:
         save_to_csv(all_data, "Bonox", "Todos")
 
 
+def scrape_gamefan() -> None:
+    """Ejecuta el scraping de Gamefan - Extrae automáticamente todos los items de múltiples juegos"""
+    config = SITES_CONFIG["gamefan"]
+    all_data = []
+    
+    for game_key, game_config in config["games"].items():
+        game_name = game_config["game_name"]
+        game_url = game_config["url"]
+        
+        # Crear scraper con URL específica del juego
+        scraper = GamefanScraper(base_url=config["base_url"], url=game_url)
+        
+        # Ejecutar scraping - Gamefan extrae automáticamente todos los items
+        data = scraper.scrape_game(game_name)
+        
+        # Acumular datos de todos los juegos
+        if data:
+            all_data.extend(data)
+    
+    # Guardar todos los datos en un solo CSV
+    if all_data:
+        save_to_csv(all_data, "Gamefan", "Todos")
+
+
 def main():
     """Función principal que coordina todo el scraping"""
     print("=" * 60)
@@ -100,6 +125,7 @@ def main():
         # Ejecutar scrapers
         scrape_pagostore()
         scrape_bonox()
+        scrape_gamefan()
         
         print()
         print("=" * 60)

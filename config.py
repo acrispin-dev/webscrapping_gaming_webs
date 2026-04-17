@@ -68,6 +68,15 @@ SITES_CONFIG = {
                 "url": "https://bonoxs.com/pe/marvel-rivals-ww?from=store"
             }
         }
+    },
+    "gamefan": {
+        "base_url": "https://gamefan.la",
+        "games": {
+            "free_fire": {
+                "game_name": "Free Fire",
+                "url": "https://gamefan.la/pe/juegos/freefire"
+            }
+        }
     }
 }
 
