@@ -165,12 +165,19 @@ class BonoxScraper:
             items = []
             seen_prices = set()  # Para evitar duplicados
             
-            # ESTRATEGIA MONEDA DIRECTA: Detectar si es Valorant (VP) o Wild Rift (Cores)
-            # Si detectamos VP o Cores, asumimos que es una estructura simple de moneda
-            if "VP" in html_content or "Cores" in html_content:
+            # ESTRATEGIA MONEDA DIRECTA: Detectar si es Valorant (VP), Wild Rift (Cores), Blood Strike (Oro) o Roblox (Robux)
+            # Si detectamos VP, Cores, Oro, o Robux, asumimos que es una estructura simple de moneda
+            if "VP" in html_content or "Cores" in html_content or "Oro" in html_content or "Robux" in html_content:
                 currency_items = self._extract_currency_items(soup)
                 if currency_items:
-                    currency_type = "Valorant" if "VP" in html_content else "Wild Rift"
+                    if "VP" in html_content:
+                        currency_type = "Valorant"
+                    elif "Cores" in html_content:
+                        currency_type = "Wild Rift"
+                    elif "Oro" in html_content:
+                        currency_type = "Blood Strike"
+                    else:
+                        currency_type = "Roblox"
                     print(f"    Detectada estructura {currency_type}")
                     return currency_items
             
@@ -320,19 +327,20 @@ class BonoxScraper:
     
     def _extract_currency_items(self, soup: BeautifulSoup) -> Optional[List[Dict]]:
         """
-        Extrae items con moneda directa (VP, Cores, etc).
+        Extrae items con moneda directa y nombres flexibles.
         
-        Estructura:
+        Soporta múltiples formatos:
+        - Valorant: 540VP
+        - Wild Rift: 485 Cores
+        - Blood Strike: 105 Oro, Level Up Pass, Ultra Skin Lucky Chest, Strike Pass Elite, etc.
+        
+        Estructura genérica:
         <button class="px-2 py-[2px] flex items-center...">
             <div class="flex flex-col w-full">
-                <span class="text-[12px]">540VP</span> o <span class="text-[12px]">485 Cores</span>
+                <span class="text-[12px]">NOMBRE (puede ser número+moneda o nombre descriptivo)</span>
                 <span class="text-[#73ff9b] text-[9px]">S/ 18.00</span>
             </div>
         </button>
-        
-        Soporta:
-        - Valorant: XXXVP
-        - Wild Rift: XXX Cores
         """
         try:
             items = []
@@ -347,19 +355,13 @@ class BonoxScraper:
                 if len(spans) < 2:
                     continue
                 
-                # Primer span contiene el nombre (540VP, 485 Cores, etc)
-                currency_text = spans[0].get_text(strip=True)
+                # Primer span contiene el nombre del item
+                item_name_raw = spans[0].get_text(strip=True)
+                if not item_name_raw:
+                    continue
                 
                 # Segundo span contiene el precio (S/ 18.00)
                 price_text = spans[1].get_text(strip=True)
-                
-                # Validar formato de moneda (VP o Cores)
-                # Patrones más flexibles para VP y Cores
-                vp_match = re.search(r'(\d+)\s*VP', currency_text, re.IGNORECASE)
-                cores_match = re.search(r'(\d+)\s*Core', currency_text, re.IGNORECASE)  # Flexible para singular/plural
-                
-                if not vp_match and not cores_match:
-                    continue
                 
                 # Extraer precio
                 price_match = re.search(r'S/\s*([\d,\.]+)', price_text)
@@ -370,13 +372,13 @@ class BonoxScraper:
                     price_str = price_match.group(1).replace(',', '.')
                     precio = float(price_str)
                     
-                    # Determinar el tipo de moneda y valor
-                    if vp_match:
-                        value = int(vp_match.group(1))
-                        item_name = f"{value}VP"
-                    else:  # cores_match
-                        value = int(cores_match.group(1))
-                        item_name = f"{value} Cores"
+                    # El nombre del item es lo que viene en el primer span
+                    # Puede ser: "540VP", "485 Cores", "105 Oro", "Level Up Pass", etc.
+                    item_name = item_name_raw.strip()
+                    
+                    # Validar que el nombre no esté vacío
+                    if not item_name or len(item_name) == 0:
+                        continue
                     
                     items.append({
                         "total": 0,
@@ -385,7 +387,7 @@ class BonoxScraper:
                     })
                     print(f"    ✅ {item_name} - S/ {precio}")
                     
-                except ValueError as e:
+                except ValueError:
                     continue
             
             return items if items else None
