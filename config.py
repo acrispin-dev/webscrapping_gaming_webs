@@ -1,4 +1,4 @@
-"""
+﻿"""
 Configuración centralizada del proyecto de web scraping
 """
 import os
@@ -128,6 +128,18 @@ SITES_CONFIG = {
             "mobile_legends": {
                 "game_name": "Mobile Legends",
                 "url": "https://www.mtcgame.com/moonton/mobile-legends-bang-bang-diamond-top-up"
+            },
+            "roblox": {
+                "game_name": "Roblox",
+                "url": "https://www.mtcgame.com/roblox-gift-card/roblox-robux-gift-cards-global"
+            },
+            "valorant": {
+                "game_name": "Valorant",
+                "url": "https://www.mtcgame.com/riot/valorant-points-vp-gift-card-latam-store"
+            },
+            "league_of_legends": {
+                "game_name": "League of Legends",
+                "url": "https://www.mtcgame.com/riot-points-league-of-legends/latin-america-north-south"
             }
         }
     }

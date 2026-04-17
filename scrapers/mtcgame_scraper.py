@@ -218,20 +218,29 @@ class MTCGameScraper:
     
     def _normalize_item_name(self, nombre: str) -> str:
         """
-        Normaliza el nombre del item removiendo prefijos de juego y "Top Up" del final.
+        Normaliza el nombre del item removiendo prefijos de juego y sufijos específicos.
         
         Ejemplos:
         - "Free Fire 100 Diamonds Top Up" → "100 Diamonds"
-        - "Free Fire Weekly Membership Top-Up (Global)" → "Weekly Membership (Global)"
+        - "Free Fire Weekly Membership Top-Up (Global)" → "Weekly Membership"
         - "Mobile Legends - Diamond 1234 Top-Up" → "Diamond 1234"
         - "Mobile Legends - Twilight Pass Top Up" → "Twilight Pass"
+        - "56 Diamonds Top Up - (2)" → "56 Diamonds"
+        - "Roblox Gift Cards - 400 Robux (Global)" → "400 Robux"
+        - "Roblox Gift Cards - 800 Robux (Global)" → "800 Robux"
+        - "Valorant Points - 1000 VP (Latam Server)" → "1000 VP"
+        - "League Of Legends - 975 RP (Latin America)" → "975 RP"
         """
         try:
-            # Remover "Free Fire" o "Mobile Legends - " del inicio
-            nombre = re.sub(r'^(free\s+fire|mobile\s+legends)\s*[–\-]?\s*', '', nombre, flags=re.IGNORECASE)
+            # Remover prefijos de juego del inicio (Free Fire, Mobile Legends, Roblox Gift Cards, Valorant Points, League of Legends)
+            nombre = re.sub(r'^(free\s+fire|mobile\s+legends|roblox\s+gift\s+cards?|valorant\s+points|league\s+of\s+legends)\s*[–\-]?\s*', '', nombre, flags=re.IGNORECASE)
             
-            # Remover "Top Up" o "Top-Up" del final
-            nombre = re.sub(r'\s+top[\-\s]*up\s*$', '', nombre, flags=re.IGNORECASE)
+            # Remover "Top Up" o "Top-Up" del final, incluyendo variantes como "- (2)"
+            # Patrones: "Top Up", "Top-Up", "Top Up - (2)", "Top-Up - (2)", etc.
+            nombre = re.sub(r'\s+top[\-\s]*up(?:\s*[\-]?\s*\(\d+\))?\s*$', '', nombre, flags=re.IGNORECASE)
+            
+            # Remover sufijos: "(Global)", "(Latam Server)" del final
+            nombre = re.sub(r'\s*\(\s*(Global|Latam\s+Server)\s*\)\s*$', '', nombre, flags=re.IGNORECASE)
             
             # Limpiar espacios múltiples
             nombre = ' '.join(nombre.split())
