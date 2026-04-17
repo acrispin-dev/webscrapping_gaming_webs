@@ -46,6 +46,11 @@ SITES_CONFIG = {
                 "item_ids": [],  # Bonox extrae automáticamente todos los items de la página
                 "game_name": "Valorant",
                 "url": "https://bonoxs.com/pe/valorant-pe?from=store"
+            },
+            "wild_rift": {
+                "item_ids": [],  # Bonox extrae automáticamente todos los items de la página
+                "game_name": "League of Legends: Wild Rift",
+                "url": "https://bonoxs.com/pe/wild-rift-pe?from=store"
             }
         }
     }
