@@ -162,6 +162,66 @@ def scrape_mtcgame() -> None:
         save_to_csv(all_data, "MTCGame", "Todos")
 
 
+def merge_all_csv() -> None:
+    """
+    Unifica todos los CSVs de los diferentes vendedores en un solo archivo
+    Nombre del archivo final: GAMING_SCRAPPING_FINAL.csv
+    """
+    print("\n" + "=" * 60)
+    print("🔗 UNIFICANDO CSVs")
+    print("=" * 60)
+    
+    all_data = []
+    seller_files = [
+        "Pagostore_output_pricing.csv",
+        "Bonox_output_pricing.csv",
+        "Gamefan_output_pricing.csv",
+        "Gamescenter_output_pricing.csv",
+        "MTCGame_output_pricing.csv"
+    ]
+    
+    # Leer cada CSV y acumular datos
+    for filename in seller_files:
+        filepath = OUTPUT_DIR / filename
+        
+        if filepath.exists():
+            try:
+                df = pd.read_csv(filepath, encoding="utf-8")
+                all_data.append(df)
+                print(f"✅ {filename}: {len(df)} items")
+            except Exception as e:
+                print(f"⚠️  Error leyendo {filename}: {e}")
+        else:
+            print(f"⚠️  {filename} no encontrado")
+    
+    # Combinar todos los datos
+    if all_data:
+        final_df = pd.concat(all_data, ignore_index=True)
+        
+        # Ordenar por vendedor y juego
+        final_df = final_df.sort_values(['seller', 'juego', 'nombre_item'])
+        
+        # Guardar archivo final
+        final_file = OUTPUT_DIR / "GAMING_SCRAPPING_FINAL.csv"
+        final_df.to_csv(final_file, index=False, encoding="utf-8")
+        
+        print(f"\n📊 RESUMEN FINAL")
+        print(f"{'─' * 60}")
+        print(f"Total de items unificados: {len(final_df)}")
+        print(f"\nDesglose por vendedor:")
+        for seller in sorted(final_df['seller'].unique()):
+            count = len(final_df[final_df['seller'] == seller])
+            games = final_df[final_df['seller'] == seller]['juego'].nunique()
+            print(f"  • {seller}: {count} items en {games} juego(s)")
+        
+        print(f"\n✅ Archivo final guardado: {final_file}")
+        print(f"   Tamaño: {final_file.stat().st_size / 1024:.2f} KB")
+        print(f"   Filas: {len(final_df)}")
+        print(f"   Columnas: {len(final_df.columns)}")
+    else:
+        print("\n❌ No se encontraron archivos CSV para unificar")
+
+
 def main():
     """Función principal que coordina todo el scraping"""
     print("=" * 60)
@@ -178,6 +238,9 @@ def main():
         scrape_gamefan()
         scrape_gamescenter()
         scrape_mtcgame()
+        
+        # Unificar todos los CSVs en uno solo
+        merge_all_csv()
         
         print()
         print("=" * 60)
