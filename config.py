@@ -89,6 +89,15 @@ SITES_CONFIG = {
                 "url": "https://gamefan.la/pe/juegos/roblox"
             }
         }
+    },
+    "gamescenter": {
+        "base_url": "https://gamescenter.pe",
+        "games": {
+            "free_fire": {
+                "game_name": "Free Fire",
+                "url": "https://gamescenter.pe/categoria-producto/free-fire-diamantes/"
+            }
+        }
     }
 }
 
