@@ -79,6 +79,14 @@ SITES_CONFIG = {
             "league_of_legends": {
                 "game_name": "League of Legends",
                 "url": "https://gamefan.la/pe/recargar/riot%20points"
+            },
+            "valorant": {
+                "game_name": "Valorant",
+                "url": "https://gamefan.la/pe/juegos/valorant"
+            },
+            "roblox": {
+                "game_name": "Roblox",
+                "url": "https://gamefan.la/pe/juegos/roblox"
             }
         }
     }

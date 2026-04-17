@@ -145,36 +145,63 @@ class GamefanScraper:
     def _get_product_price(self, product_url: str) -> Optional[float]:
         """
         Accede a la página del producto y extrae el precio.
+        Con reintentos para manejar timeouts.
         
         Estructura HTML en página de producto:
         <h2 class="big">S./ 3.80</h2>
         """
-        try:
-            # Aumentar timeout para evitar problemas de conexión
-            response = requests.get(product_url, headers=self.headers, timeout=20)
-            response.raise_for_status()
-            
-            soup = BeautifulSoup(response.content, "lxml")
-            
-            # Buscar el h2 con clase "big"
-            price_h2 = soup.find('h2', class_='big')
-            if not price_h2:
-                return None
-            
-            price_text = price_h2.get_text(strip=True)
-            
-            # Extraer el precio (ej: "S./ 3.80" o "S/ 3.80")
-            price_match = re.search(r'S\.?\s*/?(\s*)?([\d,\.]+)', price_text)
-            if not price_match:
-                return None
-            
-            price_str = price_match.group(2).replace(',', '.')
-            price = float(price_str)
-            
-            return price
-            
-        except requests.Timeout:
-            print(f"        ⚠️  Timeout en {product_url}")
-            return None
-        except Exception as e:
-            return None
+        # Reintentar hasta 3 veces
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            try:
+                # Timeout de 30 segundos
+                response = requests.get(
+                    product_url, 
+                    headers=self.headers, 
+                    timeout=30,
+                    allow_redirects=True
+                )
+                response.raise_for_status()
+                
+                soup = BeautifulSoup(response.content, "lxml")
+                
+                # Buscar el h2 con clase "big"
+                price_h2 = soup.find('h2', class_='big')
+                if not price_h2:
+                    return None
+                
+                price_text = price_h2.get_text(strip=True)
+                
+                # Extraer el precio (ej: "S./ 3.80" o "S/ 3.80")
+                price_match = re.search(r'S\.?\s*/?(\s*)?([\d,\.]+)', price_text)
+                if not price_match:
+                    return None
+                
+                price_str = price_match.group(2).replace(',', '.')
+                price = float(price_str)
+                
+                return price
+                
+            except requests.exceptions.Timeout:
+                if attempt < max_retries - 1:
+                    print(f"        ⏱️  Timeout en intento {attempt+1}, reintentando...")
+                    continue
+                else:
+                    print(f"        ⏱️  Timeout después de {max_retries} intentos")
+                    return None
+            except requests.exceptions.ConnectionError:
+                if attempt < max_retries - 1:
+                    print(f"        🔌 Error de conexión, reintentando...")
+                    continue
+                else:
+                    print(f"        🔌 Error de conexión después de {max_retries} intentos")
+                    return None
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"        ⚠️  Error: {type(e).__name__}, reintentando...")
+                    continue
+                else:
+                    return None
+        
+        return None
