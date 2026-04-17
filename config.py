@@ -117,6 +117,19 @@ SITES_CONFIG = {
                 "url": "https://gamescenter.pe/categoria-producto/recargas/league-of-legends-wild-rift/"
             }
         }
+    },
+    "mtcgame": {
+        "base_url": "https://www.mtcgame.com",
+        "games": {
+            "free_fire": {
+                "game_name": "Free Fire",
+                "url": "https://www.mtcgame.com/garena/free-fire-garena-diamond-top-up"
+            },
+            "mobile_legends": {
+                "game_name": "Mobile Legends",
+                "url": "https://www.mtcgame.com/moonton/mobile-legends-bang-bang-diamond-top-up"
+            }
+        }
     }
 }
 

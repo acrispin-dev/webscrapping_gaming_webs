@@ -16,6 +16,7 @@ from scrapers.pagostore_scraper import PagostoreScraper
 from scrapers.bonox_scraper import BonoxScraper
 from scrapers.gamefan_scraper import GamefanScraper
 from scrapers.gamescenter_scraper import GamescenterScraper
+from scrapers.mtcgame_scraper import MTCGameScraper
 
 
 def save_to_csv(data: list, seller: str, game: str) -> None:
@@ -137,6 +138,30 @@ def scrape_gamescenter() -> None:
         save_to_csv(all_data, "Gamescenter", "Todos")
 
 
+def scrape_mtcgame() -> None:
+    """Ejecuta el scraping de MTCGame - Extrae automáticamente todos los items de múltiples juegos"""
+    config = SITES_CONFIG["mtcgame"]
+    all_data = []
+    
+    for game_key, game_config in config["games"].items():
+        game_name = game_config["game_name"]
+        game_url = game_config["url"]
+        
+        # Crear scraper con URL específica del juego
+        scraper = MTCGameScraper(url=game_url)
+        
+        # Ejecutar scraping - MTCGame extrae automáticamente todos los items
+        data = scraper.scrape_game(game_name)
+        
+        # Acumular datos de todos los juegos
+        if data:
+            all_data.extend(data)
+    
+    # Guardar todos los datos en un solo CSV
+    if all_data:
+        save_to_csv(all_data, "MTCGame", "Todos")
+
+
 def main():
     """Función principal que coordina todo el scraping"""
     print("=" * 60)
@@ -152,6 +177,7 @@ def main():
         scrape_bonox()
         scrape_gamefan()
         scrape_gamescenter()
+        scrape_mtcgame()
         
         print()
         print("=" * 60)
