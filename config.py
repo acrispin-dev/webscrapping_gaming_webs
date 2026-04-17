@@ -96,6 +96,10 @@ SITES_CONFIG = {
             "free_fire": {
                 "game_name": "Free Fire",
                 "url": "https://gamescenter.pe/categoria-producto/free-fire-diamantes/"
+            },
+            "roblox": {
+                "game_name": "Roblox",
+                "url": "https://gamescenter.pe/categoria-producto/roblox-robux/"
             }
         }
     }
