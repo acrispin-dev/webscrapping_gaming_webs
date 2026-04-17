@@ -223,11 +223,11 @@ class GamescenterScraper:
         Ejemplos:
         - "Free Fire: 520 Diamantes + 52 Bonus – Perú" → "520 Diamantes + 52 Bonus"
         - "ROBLOX: 5000 Robux + 500 Bonus" → "5000 Robux + 500 Bonus"
-        - "ROBLOX Tarjeta de Regalo $10 – Robux Gift Card GLOBAL" → "Tarjeta de Regalo $10"
+        - "Blood Strike - Oro Común x500" → "Oro Común x500"
         """
         try:
-            # Remover prefijos de juego: "Free Fire: ", "Free Fire - ", "ROBLOX: ", "ROBLOX - ", "ROBLOX "
-            nombre = re.sub(r'^(free\s+fire|roblox)\s*[:\-–]?\s*', '', nombre, flags=re.IGNORECASE)
+            # Remover prefijos de juego: "Free Fire: ", "Free Fire - ", "ROBLOX: ", "ROBLOX - ", "Blood Strike - "
+            nombre = re.sub(r'^(free\s+fire|roblox|blood\s+strike)\s*[:\-–]?\s*', '', nombre, flags=re.IGNORECASE)
             
             # Remover sufijos de región y plataforma
             nombre = re.sub(r'\s*[–\-]\s*(Perú|Latinoamérica|Robux Gift Card GLOBAL)\s*$', '', nombre)

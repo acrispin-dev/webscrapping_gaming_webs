@@ -100,6 +100,10 @@ SITES_CONFIG = {
             "roblox": {
                 "game_name": "Roblox",
                 "url": "https://gamescenter.pe/categoria-producto/roblox-robux/"
+            },
+            "blood_strike": {
+                "game_name": "Blood Strike",
+                "url": "https://gamescenter.pe/categoria-producto/recargas/blood-strike/"
             }
         }
     }
