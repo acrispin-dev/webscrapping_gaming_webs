@@ -142,6 +142,15 @@ SITES_CONFIG = {
                 "url": "https://www.mtcgame.com/riot-points-league-of-legends/latin-america-north-south"
             }
         }
+    },
+    "codashop": {
+        "base_url": "https://www.codashop.com",
+        "games": {
+            "free_fire": {
+                "game_name": "Free Fire",
+                "url": "https://www.codashop.com/es-pe/free-fire"
+            }
+        }
     }
 }
 

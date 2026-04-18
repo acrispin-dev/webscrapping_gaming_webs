@@ -17,6 +17,7 @@ from scrapers.bonox_scraper import BonoxScraper
 from scrapers.gamefan_scraper import GamefanScraper
 from scrapers.gamescenter_scraper import GamescenterScraper
 from scrapers.mtcgame_scraper import MTCGameScraper
+from scrapers.codashop_scraper import CodashopScraper
 
 
 def save_to_csv(data: list, seller: str, game: str) -> None:
@@ -162,6 +163,30 @@ def scrape_mtcgame() -> None:
         save_to_csv(all_data, "MTCGame", "Todos")
 
 
+def scrape_codashop() -> None:
+    """Ejecuta el scraping de Codashop - Extrae automáticamente todos los items de múltiples juegos"""
+    config = SITES_CONFIG["codashop"]
+    all_data = []
+    
+    for game_key, game_config in config["games"].items():
+        game_name = game_config["game_name"]
+        game_url = game_config["url"]
+        
+        # Crear scraper con URL específica del juego
+        scraper = CodashopScraper(url=game_url)
+        
+        # Ejecutar scraping - Codashop extrae automáticamente todos los items
+        data = scraper.scrape_game(game_name)
+        
+        # Acumular datos de todos los juegos
+        if data:
+            all_data.extend(data)
+    
+    # Guardar todos los datos en un solo CSV
+    if all_data:
+        save_to_csv(all_data, "Codashop", "Todos")
+
+
 def merge_all_csv() -> None:
     """
     Unifica todos los CSVs de los diferentes vendedores en un solo archivo
@@ -177,7 +202,8 @@ def merge_all_csv() -> None:
         "Bonox_output_pricing.csv",
         "Gamefan_output_pricing.csv",
         "Gamescenter_output_pricing.csv",
-        "MTCGame_output_pricing.csv"
+        "MTCGame_output_pricing.csv",
+        "Codashop_output_pricing.csv"
     ]
     
     # Leer cada CSV y acumular datos
@@ -238,6 +264,7 @@ def main():
         scrape_gamefan()
         scrape_gamescenter()
         scrape_mtcgame()
+        scrape_codashop()
         
         # Unificar todos los CSVs en uno solo
         merge_all_csv()

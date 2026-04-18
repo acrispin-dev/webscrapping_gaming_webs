@@ -20,7 +20,8 @@ seller_files = [
     "Bonox_output_pricing.csv",
     "Gamefan_output_pricing.csv",
     "Gamescenter_output_pricing.csv",
-    "MTCGame_output_pricing.csv"
+    "MTCGame_output_pricing.csv",
+    "Codashop_output_pricing.csv"
 ]
 
 # Leer cada CSV y acumular datos
