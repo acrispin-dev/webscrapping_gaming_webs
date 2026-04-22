@@ -9,7 +9,7 @@ import pandas as pd
 from datetime import datetime
 
 # Importar configuración
-from config import SITES_CONFIG, CSV_COLUMNS, get_output_filename, OUTPUT_DIR
+from config import SITES_CONFIG, CSV_COLUMNS, get_output_filename, OUTPUT_DIR, normalize_freefire_item_name
 
 # Importar scrapers
 from scrapers.pagostore_scraper import PagostoreScraper
@@ -248,6 +248,88 @@ def merge_all_csv() -> None:
         print("\n❌ No se encontraron archivos CSV para unificar")
 
 
+def normalize_all_csv() -> None:
+    """
+    Normaliza los nombres de items de Free Fire en todos los CSVs individuales
+    y en el archivo final unificado
+    """
+    print("\n" + "=" * 60)
+    print("🔄 NORMALIZANDO ITEMS DE FREE FIRE")
+    print("=" * 60)
+    
+    seller_files = [
+        "Pagostore_output_pricing.csv",
+        "Bonox_output_pricing.csv",
+        "Gamefan_output_pricing.csv",
+        "Gamescenter_output_pricing.csv",
+        "MTCGame_output_pricing.csv",
+        "Codashop_output_pricing.csv"
+    ]
+    
+    total_normalized = 0
+    
+    # Normalizar cada CSV individual
+    for filename in seller_files:
+        filepath = OUTPUT_DIR / filename
+        
+        if not filepath.exists():
+            continue
+        
+        try:
+            # Leer CSV
+            df = pd.read_csv(filepath, encoding="utf-8")
+            df_original = df.copy()
+            
+            # Aplicar normalización a items de Free Fire
+            mask = df['juego'] == 'Free Fire'
+            if mask.any():
+                df.loc[mask, 'nombre_item'] = df.loc[mask, 'nombre_item'].apply(
+                    lambda x: normalize_freefire_item_name(x)
+                )
+                
+                # Contar cambios
+                changed = (df_original.loc[mask, 'nombre_item'] != df.loc[mask, 'nombre_item']).sum()
+                if changed > 0:
+                    total_normalized += changed
+                    print(f"✅ {filename}: {changed} items normalizados")
+                else:
+                    print(f"ℹ️  {filename}: Items ya normalizados")
+                
+                # Guardar CSV actualizado
+                df.to_csv(filepath, index=False, encoding="utf-8")
+        
+        except Exception as e:
+            print(f"⚠️  Error procesando {filename}: {e}")
+    
+    # Normalizar archivo final
+    final_file = OUTPUT_DIR / "GAMING_SCRAPPING_FINAL.csv"
+    if final_file.exists():
+        try:
+            df = pd.read_csv(final_file, encoding="utf-8")
+            df_original = df.copy()
+            
+            # Aplicar normalización a items de Free Fire
+            mask = df['juego'] == 'Free Fire'
+            if mask.any():
+                df.loc[mask, 'nombre_item'] = df.loc[mask, 'nombre_item'].apply(
+                    lambda x: normalize_freefire_item_name(x)
+                )
+                
+                # Contar cambios
+                changed = (df_original.loc[mask, 'nombre_item'] != df.loc[mask, 'nombre_item']).sum()
+                if changed > 0:
+                    print(f"✅ GAMING_SCRAPPING_FINAL.csv: {changed} items normalizados")
+                
+                # Guardar archivo final
+                df.to_csv(final_file, index=False, encoding="utf-8")
+        
+        except Exception as e:
+            print(f"⚠️  Error procesando GAMING_SCRAPPING_FINAL.csv: {e}")
+    
+    print(f"\n📊 Total de items normalizados: {total_normalized}")
+    print("=" * 60)
+
+
 def main():
     """Función principal que coordina todo el scraping"""
     print("=" * 60)
@@ -268,6 +350,9 @@ def main():
         
         # Unificar todos los CSVs en uno solo
         merge_all_csv()
+        
+        # Normalizar items de Free Fire
+        normalize_all_csv()
         
         print()
         print("=" * 60)

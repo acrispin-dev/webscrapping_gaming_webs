@@ -161,3 +161,82 @@ CSV_COLUMNS = ["seller", "juego", "nombre_item", "precio", "moneda",
 def get_output_filename(seller: str, game: str = None) -> str:
     """Genera nombre de archivo CSV"""
     return f"{seller}_output_pricing.csv"
+
+
+def normalize_freefire_item_name(nombre_item: str, seller: str = None) -> str:
+    """
+    Normaliza los nombres de items de Free Fire para todos los vendedores.
+    
+    Reglas:
+    1. Si NO contiene "diamante" o "diamond" (pases, membresías, etc.), devuelve el nombre tal cual
+    2. Si contiene "diamante/diamond", normaliza a formato "Diamantes {base} + {bonus} Bonus"
+    3. Si termina en 9, aumenta 1 y reduce bonus en 1
+    
+    Args:
+        nombre_item: Nombre del item a normalizar
+        seller: Nombre del vendedor (opcional, para lógica específica por vendor)
+    
+    Returns:
+        Nombre normalizado del item
+    """
+    import re
+    
+    # Si no contiene "diamante" ni "diamond", devolver tal cual
+    if 'diamante' not in nombre_item.lower() and 'diamond' not in nombre_item.lower():
+        return nombre_item
+    
+    base = None
+    bonus = None
+    
+    # Patrón 1: "Diamond X + Y Bonus" (Pagostore, Bonox con formato completo)
+    match = re.search(r'[Dd]iamond\s+(\d+)\s*\+\s*(\d+)\s*[Bb]onus', nombre_item)
+    if match:
+        base = int(match.group(1))
+        bonus = int(match.group(2))
+    
+    # Patrón 2: "X diamantes + Y Bonus" (Gamescenter)
+    if base is None:
+        match = re.search(r'(\d+)\s+diamantes?\s*\+\s*(\d+)\s*[Bb]onus', nombre_item, re.IGNORECASE)
+        if match:
+            base = int(match.group(1))
+            bonus = int(match.group(2))
+    
+    # Patrón 3: "Diamond X Y Bonus" (sin +)
+    if base is None:
+        match = re.search(r'[Dd]iamond\s+(\d+)\s+(\d+)\s*[Bb]onus', nombre_item)
+        if match:
+            base = int(match.group(1))
+            bonus = int(match.group(2))
+    
+    # Patrón 4: "X diamantes + Y Bonus" (variable)
+    if base is None:
+        match = re.search(r'(\d+)\s+diamantes?\s+(\d+)\s*[Bb]onus', nombre_item, re.IGNORECASE)
+        if match:
+            base = int(match.group(1))
+            bonus = int(match.group(2))
+    
+    # Patrón 5: Solo número (ej: "100 diamantes" de Gamefan)
+    if base is None:
+        match = re.search(r'^(\d+)\s*diamantes', nombre_item, re.IGNORECASE)
+        if match:
+            base = int(match.group(1))
+            bonus = int(base * 0.1)
+    
+    # Patrón 6: "X Diamonds" sin bonus (ej: "100 Diamonds" de MTCGame)
+    if base is None:
+        match = re.search(r'^(\d+)\s*[Dd]iamonds?$', nombre_item)
+        if match:
+            base = int(match.group(1))
+            bonus = int(base * 0.1)
+    
+    # Si extrajimos base y bonus, normalizar
+    if base is not None and bonus is not None:
+        # Aplicar regla: si termina en 9, aumentar base y restar bonus
+        if base % 10 == 9:
+            base += 1
+            bonus = max(0, bonus - 1)
+        
+        return f"Diamantes {base} + {bonus} Bonus"
+    
+    # Si no coincide ningún patrón, devolver tal cual
+    return nombre_item
