@@ -18,6 +18,7 @@ from scrapers.gamefan_scraper import GamefanScraper
 from scrapers.gamescenter_scraper import GamescenterScraper
 from scrapers.mtcgame_scraper import MTCGameScraper
 from scrapers.codashop_scraper import CodashopScraper
+from email_sender import send_csv_email
 
 
 def save_to_csv(data: list, seller: str, game: str) -> None:
@@ -353,7 +354,13 @@ def main():
         
         # Normalizar items de Free Fire
         normalize_all_csv()
-        
+
+        # Enviar CSV final por correo
+        print("\n" + "=" * 60)
+        print("📧 ENVIANDO REPORTE POR CORREO")
+        print("=" * 60)
+        send_csv_email(OUTPUT_DIR / "GAMING_SCRAPPING_FINAL.csv")
+
         print()
         print("=" * 60)
         print("✨ ¡Scraping completado exitosamente!")
